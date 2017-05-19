@@ -23,3 +23,11 @@ You can find what url the app is running at with:
 ```shell
 $ cf apps
 ```
+
+Testing
+-------
+
+The app exposes 2 endpoints:
+
+  - ``<url>/pony (GET)`` - lists the MLP Mane 6
+  - ``<url>/pony/<ponyname> (GET)`` - returns the information for that pony
