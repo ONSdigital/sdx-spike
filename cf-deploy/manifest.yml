@@ -1,0 +1,6 @@
+---
+applications:
+  - name: sdx-go-cf-deploy
+    env:
+      GOVERSION: go1.8
+      GOPACKAGENAME: github.com/ONSdigital/sdx-spike/cf-deploy

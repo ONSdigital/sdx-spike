@@ -1,0 +1,21 @@
+{
+    "memo": "",
+    "projects": [
+        {
+            "name": "github.com/gorilla/context",
+            "branch": "master",
+            "revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/gorilla/mux",
+            "branch": "master",
+            "revision": "757bef944d0f21880861c2dd9c871ca543023cba",
+            "packages": [
+                "."
+            ]
+        }
+    ]
+}
