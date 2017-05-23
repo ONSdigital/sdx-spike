@@ -11,7 +11,7 @@ resources:
     api: {{cf_api_url}}
     username: {{cf_username}}
     password: {{cf_password}}
-    organisation: {{cf_organisation}}
+    organization: {{cf_organisation}}
     space: {{cf_space}}
     skip_cert_check: true
 
