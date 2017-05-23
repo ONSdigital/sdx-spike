@@ -2,8 +2,10 @@
 
 set -e -x
 
-export GOPATH=$PWD
+echo "Copying vendor/ to gopath"
+cp -r vendor/ ${GOPATH}/src/
 
+cd ..
 go version
 env
 go test ./...
