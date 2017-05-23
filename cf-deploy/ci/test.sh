@@ -5,5 +5,5 @@ set -e -x
 cd sdx-pony/cf-deploy
   # go test ./...
   go version
-  ls
+  ls vendor/
 cd -
