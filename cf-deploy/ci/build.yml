@@ -10,4 +10,4 @@ inputs:
 - name: sdx-pony
 
 run:
-  path: ./cf-deploy/ci/test.sh
+  path: ./sdx-pony/cf-deploy/ci/test.sh
