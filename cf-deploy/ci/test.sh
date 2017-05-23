@@ -2,6 +2,6 @@
 
 set -e -x
 
-pushd cf-deploy
+cd sdx-pony/cf-deploy
   go test ./...
-popd
+cd -
