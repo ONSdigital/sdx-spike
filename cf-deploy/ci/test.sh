@@ -4,7 +4,7 @@ set -e -x
 
 echo "Copying vendor/ to gopath"
 
-cp -r gopath/github.com/ONSdigital/sdx-spike/cf-deploy/vendor/ ${GOPATH}/src/
+cp -r gopath/github.com/ONSdigital/sdx-spike/cf-deploy/vendor/* ${GOPATH}/src/
 
 ls /go/src/
 
