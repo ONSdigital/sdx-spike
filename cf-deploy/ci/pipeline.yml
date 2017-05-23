@@ -24,4 +24,4 @@ jobs:
   - task: tests
     file: sdx-pony/cf-deploy/ci/build.yml
   - put: cf-deploy
-    manifest: manifest.yml
+    manifest: sdx-pony/cf-deploy/manifest.yml
