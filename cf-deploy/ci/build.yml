@@ -8,6 +8,7 @@ image_resource:
 
 inputs:
 - name: sdx-pony
+  path: gopath/github.com/ONSdigital/sdx-spike
 
 run:
   path: ./sdx-pony/cf-deploy/ci/test.sh
