@@ -2,7 +2,7 @@
 
 set -e -x
 
-cd sdx-pony/cf-deploy
+cd ..
   # go test ./...
   go version
   env
