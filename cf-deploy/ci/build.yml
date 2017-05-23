@@ -7,7 +7,7 @@ image_resource:
     tag: latest
 
 inputs:
-- name: cf-deploy
+- name: sdx-pony
 
 run:
   path: ./cf-deploy/ci/test.sh

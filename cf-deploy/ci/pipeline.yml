@@ -12,4 +12,4 @@ jobs:
   - get: sdx-pony
     trigger: true
   - task: tests
-    file: sdx-pony/ci/build.yml
+    file: sdx-pony/cf-deploy/ci/build.yml
