@@ -3,8 +3,8 @@
 set -e -x
 
 echo "Copying vendor/ to gopath"
-ls
-cp -r vendor/ ${GOPATH}/src/
+
+cp -r gopath/github.com/ONSdigital/sdx-spike/cf-deploy/vendor/ ${GOPATH}/src/
 
 cd ..
 go version
