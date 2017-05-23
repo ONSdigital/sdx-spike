@@ -11,4 +11,4 @@ inputs:
   path: gopath/src/github.com/ONSdigital/sdx-spike/cf-deploy
 
 run:
-  path: ./ci/test.sh
+  path: gopath/src/github.com/ONSdigital/sdx-spike/cf-deploy/ci/test.sh
