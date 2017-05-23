@@ -20,7 +20,6 @@ var ponies = map[string]string{
 }
 
 func main() {
-
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		log.Fatal("No PORT set")
@@ -28,11 +27,15 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/pony", handlePonyList).Methods("GET")
-	r.HandleFunc("/pony/{name}", handlePony).Methods("GET")
+	setUpRoutes(r)
 
 	http.Handle("/", r)
 	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+}
+
+func setUpRoutes(r *mux.Router) {
+	r.HandleFunc("/pony", handlePonyList).Methods("GET")
+	r.HandleFunc("/pony/{name}", handlePony).Methods("GET")
 }
 
 type Pony struct {

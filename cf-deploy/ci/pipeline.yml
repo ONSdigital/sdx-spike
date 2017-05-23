@@ -1,0 +1,15 @@
+resources:
+- name: sdx-pony
+  type: git
+  source:
+    uri: git@github.com:ONSDigital/sdx-spike
+    branch: spike/cf
+    private_key: {{github_private_key}}
+
+jobs:
+- name: unit-test
+  plan:
+  - get: sdx-pony
+    trigger: true
+  - task: tests
+    file: sdx-pony/ci/build.yml
