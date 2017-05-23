@@ -18,7 +18,7 @@ resources:
 
 
 jobs:
-- name: unit-test
+- name: simple-test-and-deploy
   plan:
   - get: sdx-pony
     trigger: true
@@ -27,4 +27,4 @@ jobs:
   - put: cf-deploy
     params:
       manifest: sdx-pony/cf-deploy/manifest.yml
-      path: sdx-pony
+      path: sdx-pony/cf-deploy
