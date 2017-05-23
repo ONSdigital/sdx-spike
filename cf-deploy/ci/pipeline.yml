@@ -5,6 +5,7 @@ resources:
     uri: git@github.com:ONSDigital/sdx-spike
     branch: spike/cf
     private_key: {{github_private_key}}
+
 - name: cf-deploy
   type: cf
   source:
@@ -24,4 +25,6 @@ jobs:
   - task: tests
     file: sdx-pony/cf-deploy/ci/build.yml
   - put: cf-deploy
-    manifest: sdx-pony/cf-deploy/manifest.yml
+    params:
+      manifest: sdx-pony/cf-deploy/manifest.yml
+      path: sdx-pony
