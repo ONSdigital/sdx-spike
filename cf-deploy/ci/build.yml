@@ -11,4 +11,4 @@ inputs:
   path: gopath/github.com/ONSdigital/sdx-spike
 
 run:
-  path: pwd
+  path: ls
