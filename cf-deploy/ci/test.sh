@@ -9,8 +9,8 @@ set -e -x
 # do a `cp -r` instead to leave them locally
 echo "Moving vendor/ to gopath"
 # mv gopath/github.com/ONSdigital/sdx-spike/cf-deploy/vendor/* ${GOPATH}/src/
-ls
-mv $PWD/vendor/* ${GOPATH}/src/
+ls sdx-pony/cf-deploy
+mv $PWD/sdx-pony/cf-deploy/vendor/* ${GOPATH}/src/
 
 # We're one level down in /ci when we're running this script, so we need to
 # jump back to run the tests.
