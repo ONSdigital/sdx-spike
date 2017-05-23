@@ -2,8 +2,7 @@
 
 set -e -x
 
-cd ..
-export GOPATH=$PWD/
+export GOPATH=$PWD
 
 go version
 env
