@@ -3,6 +3,7 @@
 set -e -x
 
 echo "Copying vendor/ to gopath"
+ls
 cp -r vendor/ ${GOPATH}/src/
 
 cd ..
