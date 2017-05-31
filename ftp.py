@@ -8,6 +8,7 @@ from pyftpdlib.servers import FTPServer, ThreadedFTPServer, MultiprocessFTPServe
 
 authorizer = DummyAuthorizer()
 authorizer.add_user("ons", "ons", "./download", perm="elradfmw")
+authorizer.add_user("ons-inbound", "ons-inbound", "./sdx-upload", perm="elradfmw")
 
 handler = FTPHandler
 handler.authorizer = authorizer
