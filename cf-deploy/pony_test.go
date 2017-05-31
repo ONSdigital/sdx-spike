@@ -17,6 +17,8 @@ func TestPonyList(t *testing.T) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
+	// Must use the url supplied by the test server or we will be unable to
+	// parse the parameters from it.
 	url := ts.URL + "/pony"
 	resp, err := http.Get(url)
 	if err != nil {
@@ -38,8 +40,6 @@ func TestPony(t *testing.T) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	// fmt.Println(string(body))
-
 	cases := map[string]string{
 		"fluttershy":      `{"name":"fluttershy","element":"kindness"}`,
 		"pinkiepie":       `{"name":"pinkiepie","element":"laughter"}`,
@@ -51,6 +51,8 @@ func TestPony(t *testing.T) {
 	}
 
 	for pony, expected := range cases {
+		// Again ensure the url is built using the base url from the test server
+		// so that parameters are correctly captured.
 		url := ts.URL + "/pony/" + pony
 		resp, err := http.Get(url)
 		if err != nil {
@@ -61,6 +63,9 @@ func TestPony(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
+		// TODO Test returned json - can't just string match as can't guarantee
+		// marshalled order of elements.
 
 		if string(body) != expected {
 			t.Errorf("handler returned unexpected body for %s: got %s want %s", pony, body, expected)
