@@ -1,0 +1,15 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: golang
+    tag: "1.8"
+
+inputs:
+- name: sdx-pony
+  # path: gopath/github.com/ONSdigital/sdx-spike
+
+run:
+  # path: gopath/github.com/ONSdigital/sdx-spike/cf-deploy/ci/test.sh
+  path: ./sdx-pony/cf-deploy/ci/test.sh
