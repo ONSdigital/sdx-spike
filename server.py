@@ -1,18 +1,25 @@
 import logging
 import settings
 from io import BytesIO
+import textwrap
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from PIL import Image
-from flask import abort, Flask, request, send_file
+from PIL import Image, ImageFont, ImageDraw
+from flask import abort, Flask, send_file
 from structlog import wrap_logger
-from werkzeug.exceptions import BadRequest
 
 logging.basicConfig(level=settings.LOGGING_LEVEL,
                     format=settings.LOGGING_FORMAT)
 logger = wrap_logger(logging.getLogger(__name__))
 
 app = Flask(__name__)
+
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam sit amet scelerisque nulla. Pellentesque mollis tellus ut arcu malesuada auctor. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Ut tristique purus non ultricies vulputate"
+text = textwrap.fill(text, 50)
+
+fontcolor = (0, 0, 0)
+fontsize = 20
+font = ImageFont.truetype('ihatcs.ttf', 15)
 
 
 class InvalidUsageError(Exception):
@@ -60,8 +67,14 @@ class InMemoryImage():
 
     def new_image(self, mode='RGB', size_x=400, size_y=400, color=0):
         '''Creates a new PIL.Image object at self.image.'''
-        size = (size_x, size_y)
-        self.image = Image.new(mode, size, color)
+        self.image = Image.new("RGBA", (1, 1))
+        draw = ImageDraw.Draw(self.image)
+        textsize = draw.textsize(text, font)
+
+        background = (255, 255, 255)
+        self.image = Image.new("RGB", textsize, background)
+        draw = ImageDraw.Draw(self.image)
+        draw.text((0, 0), text, fontcolor, font)
 
     def rewind(self):
         '''Rewinds the read-write position of the in-memory zip to the
@@ -93,12 +106,6 @@ def stream_image():
 @app.route('/image')
 def serve_image():
     '''Returns an in memory zipfile that contains an image'''
-    try:
-        image_descriptor = None
-    except BadRequest:
-        raise InvalidUsageError("Invalid POST request to /response",
-                                status_code=400,
-                                payload=request.args)
     try:
         return stream_image()
     except Exception:
