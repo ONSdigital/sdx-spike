@@ -19,7 +19,7 @@ text = textwrap.fill(text, 50)
 
 fontcolor = (0, 0, 0)
 fontsize = 20
-font = ImageFont.truetype('ihatcs.ttf', 15)
+font = ImageFont.truetype('ihatcs.ttf', 40)
 
 
 class InvalidUsageError(Exception):
@@ -65,9 +65,9 @@ class InMemoryImage():
     def __init__(self):
         self.in_memory_image = BytesIO()
 
-    def new_image(self, mode='RGB', size_x=400, size_y=400, color=0):
+    def new_image(self, mode='RGB'):
         '''Creates a new PIL.Image object at self.image.'''
-        self.image = Image.new("RGBA", (1, 1))
+        self.image = Image.new(mode, (6000, 1500), (255, 255, 255))
         draw = ImageDraw.Draw(self.image)
         textsize = draw.textsize(text, font)
 
@@ -75,6 +75,7 @@ class InMemoryImage():
         self.image = Image.new("RGB", textsize, background)
         draw = ImageDraw.Draw(self.image)
         draw.text((0, 0), text, fontcolor, font)
+        self.image = self.image.resize((1880, 450), Image.ANTIALIAS)
 
     def rewind(self):
         '''Rewinds the read-write position of the in-memory zip to the
