@@ -1,0 +1,4 @@
+---
+applications:
+- name: sdx-cf-image-spike
+  memory: 512M
