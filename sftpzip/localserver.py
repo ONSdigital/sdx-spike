@@ -1,4 +1,7 @@
 import argparse
+import logging
+import os.path
+import tempfile
 import socket
 import sys
 
@@ -41,28 +44,30 @@ def listen(sock, fails=12):
     con, addr = sock.accept()
     return con
 
-def server(root):
+def serve(root):
+    log = logging.getLogger("localsftp.serve")
     LocalSFTP.root = root
 
     sock = bind()
     con = listen(sock)
+    log.info("Handshaking...")
     t = Transport(con)
     t.set_subsystem_handler("sftp", LocalSFTP)
+    log.info("Connecting...")
     t.start_server(server=LocalServer())
 
-    """
-    chan = t.accept(timeout=120)
-    if chan:
-        server = SFTPServer(
-            channel=chan,
-            name="sftp",
-            server=si,
-            sftp_si=LocalSFTP
-        )
-    """
+def main(args):
+    logging.basicConfig()
+    log = logging.getLogger("localsftp")
+    work_dir = args.work if args.work and os.path.isdir(args.work) else tempfile.mkdtemp()
+    log.info("Working from {0}".format(work_dir))
+    serve(work_dir)
 
 def parser(description="SFTP server for testing."):
     p = argparse.ArgumentParser(description)
+    p.add_argument(
+        "--work", default=None,
+        help="Set a path to the working directory.")
     return p
 
 if __name__ == "__main__":
