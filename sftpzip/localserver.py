@@ -1,5 +1,6 @@
 import argparse
 import logging
+from logging.handlers import WatchedFileHandler
 import os.path
 import tempfile
 import socket
@@ -7,6 +8,7 @@ import sys
 
 from paramiko.server import ServerInterface
 from paramiko.sftp_server import SFTPServer
+from paramiko.ssh_exception import SSHException
 from paramiko.transport import Transport
 
 """
@@ -14,6 +16,10 @@ See
 
 * https://gist.github.com/lonetwin/3b5982cf88c598c0e169
 * https://github.com/rspivak/sftpserver/blob/master/src/sftpserver/stub_sftp.py
+
+To test from terminal::
+
+    sftp -P 22000 -o PreferredAuthentications=password 127.0.0.1
 
 """
 
@@ -32,7 +38,7 @@ class LocalSFTP(SFTPServer):
 
     root = None
 
-def bind(host=None, port=54321):
+def bind(host=None, port=22000):
     host = host or socket.gethostname()
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -48,26 +54,60 @@ def serve(root):
     log = logging.getLogger("localsftp.serve")
     LocalSFTP.root = root
 
-    sock = bind()
-    con = listen(sock)
-    log.info("Handshaking...")
-    t = Transport(con)
-    t.set_subsystem_handler("sftp", LocalSFTP)
-    log.info("Connecting...")
-    t.start_server(server=LocalServer())
+    rv = 0
+    log.info("Working from {0}".format(root))
+    try:
+        sock = bind()
+        log.info("Listening...")
+        con = listen(sock)
+        log.info("Handshaking...")
+        t = Transport(con)
+        t.set_subsystem_handler("sftp", LocalSFTP)
+        log.info("Connecting...")
+        t.start_server(server=LocalServer())
+    except SSHException as e:
+        log.error(e)
+        rv = 1
+    finally:
+        log.info("Stopped.")
+        return rv
 
 def main(args):
-    logging.basicConfig()
     log = logging.getLogger("localsftp")
+    log.setLevel(args.log_level)
+
+    formatter = logging.Formatter(
+        "%(asctime)s %(levelname)-7s %(name)s|%(message)s")
+    ch = logging.StreamHandler()
+
+    if args.log_path is None:
+        ch.setLevel(args.log_level)
+    else:
+        fh = WatchedFileHandler(args.log_path)
+        fh.setLevel(args.log_level)
+        fh.setFormatter(formatter)
+        log.addHandler(fh)
+        ch.setLevel(logging.WARNING)
+
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
+
     work_dir = args.work if args.work and os.path.isdir(args.work) else tempfile.mkdtemp()
-    log.info("Working from {0}".format(work_dir))
-    serve(work_dir)
+    return serve(work_dir)
 
 def parser(description="SFTP server for testing."):
     p = argparse.ArgumentParser(description)
     p.add_argument(
         "--work", default=None,
         help="Set a path to the working directory.")
+    p.add_argument(
+        "-v", "--verbose", required=False,
+        action="store_const", dest="log_level",
+        const=logging.DEBUG, default=logging.INFO,
+        help="Increase the verbosity of output")
+    p.add_argument(
+        "--log", default=None, dest="log_path",
+        help="Set a file path for log output")
     return p
 
 if __name__ == "__main__":
