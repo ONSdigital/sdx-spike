@@ -37,6 +37,11 @@ class LocalServer(ServerInterface):
     def get_allowed_auths(self, username):
         return "password,publickey"
 
+    def check_channel_request(self, kind, chanid):
+        log = logging.getLogger("localsftp.server")
+        log.info(kind)
+        return paramiko.OPEN_SUCCEEDED
+
 class LocalSFTP(SFTPServer):
 
     root = None
