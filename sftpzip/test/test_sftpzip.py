@@ -3,6 +3,8 @@ import os.path
 import unittest
 import zipfile
 
+from sftpzip.localserver import LocalServer
+
 class ZipInMemory:
 
     @staticmethod
