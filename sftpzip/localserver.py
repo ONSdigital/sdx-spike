@@ -6,8 +6,11 @@ import tempfile
 import socket
 import sys
 
+import paramiko
+from paramiko.rsakey import RSAKey
 from paramiko.server import ServerInterface
 from paramiko.sftp_server import SFTPServer
+from paramiko.ssh_exception import PasswordRequiredException
 from paramiko.ssh_exception import SSHException
 from paramiko.transport import Transport
 
@@ -19,7 +22,7 @@ See
 
 To test from terminal::
 
-    sftp -P 22000 -o PreferredAuthentications=password 127.0.0.1
+    sftp -P 22000 -o PreferredAuthentications=password -o StrictHostKeyChecking=no 127.0.0.1
 
 """
 
@@ -50,21 +53,39 @@ def listen(sock, fails=12):
     con, addr = sock.accept()
     return con
 
+def get_key(locn):
+    log = logging.getLogger("localsftp.keys")
+    fp = os.path.join(locn, "id_rsa")
+    try:
+        key = RSAKey.from_private_key_file(fp)
+    except (IOError, PasswordRequiredException, SSHException):
+        key = RSAKey.generate(2048)
+        key.write_private_key_file(fp)
+    return key
+
 def serve(root):
     log = logging.getLogger("localsftp.serve")
     LocalSFTP.root = root
 
     rv = 0
     log.info("Working from {0}".format(root))
+    key = get_key(root)
+    log.info("Host key: {0}".format(key.get_base64()))
     try:
         sock = bind()
         log.info("Listening...")
         con = listen(sock)
         log.info("Handshaking...")
         t = Transport(con)
+        t.add_server_key(key)
         t.set_subsystem_handler("sftp", LocalSFTP)
         log.info("Connecting...")
         t.start_server(server=LocalServer())
+        chan = t.accept(60)
+        if chan is None:
+            rv = 1
+        else:
+            log.info("Serving...")
     except SSHException as e:
         log.error(e)
         rv = 1
