@@ -48,6 +48,11 @@ class LocalSFTP(SFTPServer):
 
     root = None
 
+    def start(self):
+        log = logging.getLogger("localsftp.service")
+        log.info("Started.")
+        super().start()
+
     def list_folder(self, path):
         path = os.path.join(self.root, self.canonicalize(path))
         try:
