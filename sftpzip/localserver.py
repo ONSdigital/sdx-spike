@@ -3,6 +3,7 @@ import logging
 from logging.handlers import WatchedFileHandler
 import os.path
 import tempfile
+import time
 import socket
 import sys
 
@@ -83,7 +84,7 @@ def serve(root):
         log.info("Handshaking...")
         t = Transport(con)
         t.add_server_key(key)
-        t.set_subsystem_handler("sftp", LocalSFTP)
+        t.set_subsystem_handler("sftp", paramiko.SFTPServer, LocalSFTP)
         log.info("Connecting...")
         t.start_server(server=LocalServer())
         chan = t.accept(60)
@@ -91,6 +92,9 @@ def serve(root):
             rv = 1
         else:
             log.info("Serving...")
+            while t.is_active():
+                time.sleep(12)
+                log.info("Heartbeat.")
     except SSHException as e:
         log.error(e)
         rv = 1
