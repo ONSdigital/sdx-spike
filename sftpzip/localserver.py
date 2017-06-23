@@ -39,7 +39,7 @@ class LocalServer(ServerInterface):
         return "password,publickey"
 
     def check_channel_request(self, kind, chanid):
-        log = logging.getLogger("localsftp.server")
+        log = logging.getLogger("localsftp.session")
         log.info(kind)
         return paramiko.OPEN_SUCCEEDED
 
@@ -69,8 +69,8 @@ def get_key(locn):
         key.write_private_key_file(fp)
     return key
 
-def serve(root):
-    log = logging.getLogger("localsftp.serve")
+def serve(root, interval=12):
+    log = logging.getLogger("localsftp.server")
     LocalSFTP.root = root
 
     rv = 0
@@ -82,18 +82,19 @@ def serve(root):
         log.info("Listening...")
         con = listen(sock)
         log.info("Handshaking...")
+        s = LocalServer()
         t = Transport(con)
         t.add_server_key(key)
-        t.set_subsystem_handler("sftp", paramiko.SFTPServer, LocalSFTP)
+        t.set_subsystem_handler("sftp", LocalSFTP)
         log.info("Connecting...")
-        t.start_server(server=LocalServer())
+        t.start_server(server=s)
         chan = t.accept(60)
         if chan is None:
             rv = 1
         else:
             log.info("Serving...")
             while t.is_active():
-                time.sleep(12)
+                time.sleep(interval)
                 log.info("Heartbeat.")
     except SSHException as e:
         log.error(e)
