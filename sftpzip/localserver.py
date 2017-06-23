@@ -8,6 +8,7 @@ import socket
 import sys
 
 import paramiko
+from paramiko import SFTPAttributes
 from paramiko.rsakey import RSAKey
 from paramiko.server import ServerInterface
 from paramiko.sftp_server import SFTPServer
@@ -46,6 +47,26 @@ class LocalServer(ServerInterface):
 class LocalSFTP(SFTPServer):
 
     root = None
+
+    def list_folder(self, path):
+        path = os.path.join(self.root, self.canonicalize(path))
+        try:
+            out = []
+            flist = os.listdir(path)
+            for fname in flist:
+                attr = SFTPAttributes.from_stat(os.stat(os.path.join(path, fname)))
+                attr.filename = fname
+                out.append(attr)
+            return out
+        except OSError as e:
+            return self.convert_errno(e.errno)
+
+    def stat(self, path):
+        path = os.path.join(self.root, self.canonicalize(path))
+        try:
+            return SFTPAttributes.from_stat(os.stat(path))
+        except OSError as e:
+            return self.convert_errno(e.errno)
 
 def bind(host=None, port=22000):
     host = host or socket.gethostname()
