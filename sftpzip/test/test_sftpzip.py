@@ -25,8 +25,8 @@ class ZipInMemory:
     def setUp(self):
         home = os.path.expanduser("~")
         self.buf = io.BytesIO()
-        self.zf = zipfile.ZipFile(self.buf, "w", zipfile.ZIP_DEFLATED, allowZip64=False)
-        with self.zf as container:
+        zf = zipfile.ZipFile(self.buf, "w", zipfile.ZIP_DEFLATED, allowZip64=False)
+        with zf as container:
             for fp in self.tree():
                 container.write(fp, arcname=fp[len(home):].lstrip(os.sep))
         super().setUp()
@@ -48,12 +48,14 @@ class ServerTests(NeedsTemporaryDirectory, unittest.TestCase):
         #t = sftpzip.localserver.server(self.root)
         pass
 
-
 class UnzipTests(ZipInMemory, unittest.TestCase):
 
     def setUp(self):
         super().setUp()
         self.assertTrue(self.buf.getvalue())
+        self.zf = zipfile.ZipFile(self.buf, "r", zipfile.ZIP_DEFLATED, allowZip64=False)
 
     def test_one(self):
-        pass
+        for info in self.zf.infolist():
+            data = self.zf.read(info)
+            print(len(data), info)
