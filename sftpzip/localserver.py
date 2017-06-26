@@ -9,6 +9,7 @@ import sys
 
 import paramiko
 from paramiko import SFTPAttributes
+from paramiko import SFTPHandle
 from paramiko.rsakey import RSAKey
 from paramiko.server import ServerInterface
 from paramiko.sftp_server import SFTPServer
@@ -45,9 +46,29 @@ class LocalServer(ServerInterface):
         log.info(kind)
         return paramiko.OPEN_SUCCEEDED
 
+class LocalSFTPHandle(SFTPHandle):
+
+    def stat(self):
+        try:
+            return SFTPAttributes.from_stat(os.fstat(self.readfile.fileno()))
+        except OSError as e:
+            return SFTPServer.convert_errno(e.errno)
+
+    def chattr(self, attr):
+        # python doesn't have equivalents to fchown or fchmod, so we have to
+        # use the stored filename
+        try:
+            SFTPServer.set_file_attr(self.filename, attr)
+            return SFTP_OK
+        except OSError as e:
+            return SFTPServer.convert_errno(e.errno)
+
 class LocalSFTP(SFTPServerInterface):
 
-    root = None
+    home = None
+
+    def canonicalize(self, path):
+        return os.path.normpath(os.path.join(self.home, path))
 
     def start(self):
         log = logging.getLogger("localsftp.service")
@@ -55,7 +76,7 @@ class LocalSFTP(SFTPServerInterface):
         super().start()
 
     def list_folder(self, path):
-        path = os.path.join(self.root, self.canonicalize(path))
+        path = self.canonicalize(path)
         try:
             out = []
             flist = os.listdir(path)
@@ -68,11 +89,59 @@ class LocalSFTP(SFTPServerInterface):
             return self.convert_errno(e.errno)
 
     def stat(self, path):
-        path = os.path.join(self.root, self.canonicalize(path))
+        path = self.canonicalize(path)
         try:
             return SFTPAttributes.from_stat(os.stat(path))
         except OSError as e:
             return self.convert_errno(e.errno)
+
+    def lstat(self, path):
+        path = self.canonicalize(path)
+        try:
+            return SFTPAttributes.from_stat(os.lstat(path))
+        except OSError as e:
+            return SFTPServer.convert_errno(e.errno)
+
+    def open(self, path, flags, attr):
+        path = self.canonicalize(path)
+        try:
+            binary_flag = getattr(os, "O_BINARY",  0)
+            flags |= binary_flag
+            mode = getattr(attr, "st_mode", None)
+            if mode is not None:
+                fd = os.open(path, flags, mode)
+            else:
+                # os.open() defaults to 0777 which is
+                # an odd default mode for files
+                fd = os.open(path, flags, 0o666)
+        except OSError as e:
+            return SFTPServer.convert_errno(e.errno)
+        if (flags & os.O_CREAT) and (attr is not None):
+            attr._flags &= ~attr.FLAG_PERMISSIONS
+            SFTPServer.set_file_attr(path, attr)
+        if flags & os.O_WRONLY:
+            if flags & os.O_APPEND:
+                fstr = "ab"
+            else:
+                fstr = "wb"
+        elif flags & os.O_RDWR:
+            if flags & os.O_APPEND:
+                fstr = "a+b"
+            else:
+                fstr = "r+b"
+        else:
+            # O_RDONLY (== 0)
+            fstr = "rb"
+        try:
+            f = os.fdopen(fd, fstr)
+        except OSError as e:
+            return SFTPServer.convert_errno(e.errno)
+
+        fobj = LocalSFTPHandle(flags)
+        fobj.filename = path
+        fobj.readfile = f
+        fobj.writefile = f
+        return fobj
 
 def bind(host=None, port=22000):
     host = host or socket.gethostname()
@@ -98,7 +167,9 @@ def get_key(locn):
 
 def serve(root, interval=12):
     log = logging.getLogger("localsftp.server")
-    LocalSFTP.root = root
+    home = os.path.join(root, "data")
+    os.mkdir(home)
+    LocalSFTP.home = home
 
     rv = 0
     log.info("Working from {0}".format(root))
