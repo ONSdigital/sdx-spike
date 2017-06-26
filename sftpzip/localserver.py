@@ -12,6 +12,7 @@ from paramiko import SFTPAttributes
 from paramiko.rsakey import RSAKey
 from paramiko.server import ServerInterface
 from paramiko.sftp_server import SFTPServer
+from paramiko.sftp_server import SFTPServerInterface
 from paramiko.ssh_exception import PasswordRequiredException
 from paramiko.ssh_exception import SSHException
 from paramiko.transport import Transport
@@ -44,7 +45,7 @@ class LocalServer(ServerInterface):
         log.info(kind)
         return paramiko.OPEN_SUCCEEDED
 
-class LocalSFTP(SFTPServer):
+class LocalSFTP(SFTPServerInterface):
 
     root = None
 
@@ -111,7 +112,7 @@ def serve(root, interval=12):
         s = LocalServer()
         t = Transport(con)
         t.add_server_key(key)
-        t.set_subsystem_handler("sftp", LocalSFTP)
+        t.set_subsystem_handler("sftp", SFTPServer, LocalSFTP)
         log.info("Connecting...")
         t.start_server(server=s)
         chan = t.accept(60)
