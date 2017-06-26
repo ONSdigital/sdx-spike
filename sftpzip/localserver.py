@@ -148,6 +148,9 @@ def main(args):
 
     ch.setFormatter(formatter)
     log.addHandler(ch)
+    log = logging.getLogger("paramiko")
+    log.setLevel(args.log_level)
+    log.addHandler(ch)
 
     work_dir = args.work if args.work and os.path.isdir(args.work) else tempfile.mkdtemp()
     return serve(work_dir)
