@@ -24,9 +24,10 @@ See
 * https://gist.github.com/lonetwin/3b5982cf88c598c0e169
 * https://github.com/rspivak/sftpserver/blob/master/src/sftpserver/stub_sftp.py
 
-To test from terminal::
+To test from terminals 1 and 2::
 
-    sftp -P 22000 -o PreferredAuthentications=password -o StrictHostKeyChecking=no 127.0.0.1
+    1: ~/py3.5/bin/python -m sftpzip.localserver -v 
+    2: sftp -P 22000 -o PreferredAuthentications=password -o StrictHostKeyChecking=no 127.0.0.1
 
 """
 
@@ -59,7 +60,7 @@ class LocalSFTPHandle(SFTPHandle):
         # use the stored filename
         try:
             SFTPServer.set_file_attr(self.filename, attr)
-            return SFTP_OK
+            return paramiko.SFTP_OK
         except OSError as e:
             return SFTPServer.convert_errno(e.errno)
 
@@ -101,6 +102,24 @@ class LocalSFTP(SFTPServerInterface):
             return SFTPAttributes.from_stat(os.lstat(path))
         except OSError as e:
             return SFTPServer.convert_errno(e.errno)
+
+    def mkdir(self, path, attr):
+        path = self.canonicalize(path)
+        try:
+            os.mkdir(path)
+            if attr is not None:
+                SFTPServer.set_file_attr(path, attr)
+        except OSError as e:
+            return SFTPServer.convert_errno(e.errno)
+        return paramiko.SFTP_OK
+
+    def chattr(self, path, attr):
+        path = self.canonicalize(path)
+        try:
+            SFTPServer.set_file_attr(path, attr)
+        except OSError as e:
+            return SFTPServer.convert_errno(e.errno)
+        return paramiko.SFTP_OK
 
     def open(self, path, flags, attr):
         path = self.canonicalize(path)
