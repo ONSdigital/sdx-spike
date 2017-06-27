@@ -55,7 +55,7 @@ class UnzipTests(ZipInMemory, unittest.TestCase):
         self.assertTrue(self.buf.getvalue())
         self.zf = zipfile.ZipFile(self.buf, "r", zipfile.ZIP_DEFLATED, allowZip64=False)
 
-    def test_one(self):
+    def test_unpack(self):
         rv = list(unpack(self.zf))
         self.assertEqual(8, len(rv))
         self.assertTrue(all(len(i) == 2 for i in rv))
