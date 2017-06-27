@@ -1,16 +1,30 @@
 import argparse
+import getpass
 import logging
 from logging.handlers import WatchedFileHandler
 import os.path
+import socket
 import sys
 import zipfile
+
+import paramiko
 
 def unpack(zip_file):
     for info in zip_file.infolist():
         data = zip_file.read(info)
         yield info, data
 
-def transfer(zip_file, user, host, port, root, **kwargs):
+def transfer(zip_file, user, password, host, port, root, **kwargs):
+    t = paramiko.Transport((host, port))
+    t.connect(
+        hostkey=None,
+        username=user,
+        password=password,
+        gss_host=socket.getfqdn(host),
+        gss_auth=False,
+        gss_kex=False
+    )
+    sftp = paramiko.SFTPClient.from_transport(t)
     for info, data in unpack(zip_file):
         yield info
 
@@ -36,9 +50,12 @@ def main(args):
     log = logging.getLogger("paramiko")
     log.setLevel(args.log_level)
     log.addHandler(ch)
+    log = logging.getLogger("sftpclient")
 
+    password = getpass.getpass("Enter password: ")
+    kwargs = dict(password=password, **vars(args))
     with zipfile.ZipFile(sys.stdin.buffer) as payload:
-        for item in transfer(payload, **vars(args)):
+        for item in transfer(payload, **kwargs):
             log.info(item)
 
 def parser(description="SFTP client for testing."):
@@ -50,7 +67,7 @@ def parser(description="SFTP client for testing."):
         "--host", default="0.0.0.0",
         help="Set the SFTP host.")
     p.add_argument(
-        "--port", type=int, default=2222,
+        "--port", type=int, default=22000,
         help="Set the SFTP port.")
     p.add_argument(
         "--root", default="public",
