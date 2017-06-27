@@ -26,6 +26,12 @@ def transfer(zip_file, user, password, host, port, root, **kwargs):
     )
     sftp = paramiko.SFTPClient.from_transport(t)
     for info, data in unpack(zip_file):
+        if not info.filename.endswith("/"):
+            try:
+                sftp.putfo(data, info.filename)
+            except FileNotFoundError:
+                continue
+            
         yield info
 
 def main(args):
