@@ -94,7 +94,7 @@ class LocalSFTP(SFTPServerInterface):
         try:
             return SFTPAttributes.from_stat(os.stat(path))
         except OSError as e:
-            return self.convert_errno(e.errno)
+            return SFTPServer.convert_errno(e.errno)
 
     def lstat(self, path):
         path = self.canonicalize(path)

@@ -2,6 +2,7 @@ import argparse
 import getpass
 import logging
 from logging.handlers import WatchedFileHandler
+import io
 import os.path
 import socket
 import sys
@@ -14,7 +15,22 @@ def unpack(zip_file):
         data = zip_file.read(info)
         yield info, data
 
+def makedirs(sftp, dirpath):
+    log = logging.getLogger("sftpclient.makedirs")
+    paths = os.path.split(dirpath)
+    index = 1
+    while index <= len(paths):
+        path = os.path.join(*paths[:index])
+        try:
+            sftp.stat(path)
+        except (FileNotFoundError, OSError):
+            sftp.mkdir(path)
+            yield path
+        finally:
+            index += 1
+
 def transfer(zip_file, user, password, host, port, root, **kwargs):
+    log = logging.getLogger("sftpclient.transfer")
     t = paramiko.Transport((host, port))
     t.connect(
         hostkey=None,
@@ -28,11 +44,17 @@ def transfer(zip_file, user, password, host, port, root, **kwargs):
     for info, data in unpack(zip_file):
         if not info.filename.endswith("/"):
             try:
-                sftp.putfo(data, info.filename)
+                sftp.putfo(io.BytesIO(data), info.filename)
             except FileNotFoundError:
-                continue
-            
-        yield info
+                for path in makedirs(sftp, os.path.dirname(info.filename)):
+                    log.info("made directory {0}".format(path))
+                sftp.putfo(io.BytesIO(data), info.filename)
+            finally:
+                log.info("transferred {0.filename}".format(info))
+                yield info
+        else:
+            for path in makedirs(sftp, info.filename):
+                log.info("created directory {0}".format(path))
 
 def main(args):
     log = logging.getLogger("sftpclient")
