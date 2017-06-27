@@ -1,12 +1,15 @@
 import io
 import os.path
+import multiprocessing
 import shutil
 import tempfile
+import time
 import unittest
 import zipfile
 
 import sftpzip.localserver
 
+from sftpzip.sftp import transfer
 from sftpzip.sftp import unpack
 
 class ZipInMemory:
@@ -19,7 +22,7 @@ class ZipInMemory:
                 if node not in ["sdx-spike", "sftpzip", "test"]:
                     dirnames.remove(node)
             for name in filenames:
-                if not name.startswith("."):
+                if not name.startswith(".") and not name.endswith(".zip"):
                     yield os.path.join(dirpath, name)
 
     def setUp(self):
@@ -42,11 +45,25 @@ class NeedsTemporaryDirectory():
         shutil.rmtree(self.root)
 
 
-class ServerTests(NeedsTemporaryDirectory, unittest.TestCase):
+class ServerTests(NeedsTemporaryDirectory, ZipInMemory, unittest.TestCase):
 
     def test_local_server(self):
-        #t = sftpzip.localserver.server(self.root)
-        pass
+        server = multiprocessing.Process(
+            target=sftpzip.localserver.serve,
+            args=(self.root,)
+        )
+        server.start()
+        time.sleep(5)
+        with zipfile.ZipFile(self.buf) as payload:
+            for item in transfer(
+                payload,
+                host="0.0.0.0", port=22000,
+                user="testuser", password="",
+                root="test"
+            ):
+                print(item)
+        print(os.listdir(self.root))
+        server.terminate()
 
 class UnzipTests(ZipInMemory, unittest.TestCase):
 

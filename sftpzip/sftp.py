@@ -55,6 +55,7 @@ def transfer(zip_file, user, password, host, port, root, **kwargs):
         else:
             for path in makedirs(sftp, info.filename):
                 log.info("created directory {0}".format(path))
+    sftp.close()
 
 def main(args):
     log = logging.getLogger("sftpclient")

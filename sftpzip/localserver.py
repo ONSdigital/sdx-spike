@@ -179,7 +179,7 @@ def get_key(locn):
     fp = os.path.join(locn, "id_rsa")
     try:
         key = RSAKey.from_private_key_file(fp)
-    except (IOError, PasswordRequiredException, SSHException):
+    except (FileNotFoundError, IOError, PasswordRequiredException, SSHException):
         key = RSAKey.generate(2048)
         key.write_private_key_file(fp)
     return key
