@@ -7,17 +7,17 @@ import zipfile
 
 import sftpzip.localserver
 
+from sftpzip.sftp import unpack
+
 class ZipInMemory:
 
     @staticmethod
     def tree(root=None):
         root = root or os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
         for dirpath, dirnames, filenames in os.walk(root):
-            for exclude in [".git", "__pycache__"]:
-                try:
-                    dirnames.remove(exclude)
-                except ValueError:
-                    pass
+            for node in dirnames[:]:
+                if node not in ["sdx-spike", "sftpzip", "test"]:
+                    dirnames.remove(node)
             for name in filenames:
                 if not name.startswith("."):
                     yield os.path.join(dirpath, name)
@@ -56,6 +56,6 @@ class UnzipTests(ZipInMemory, unittest.TestCase):
         self.zf = zipfile.ZipFile(self.buf, "r", zipfile.ZIP_DEFLATED, allowZip64=False)
 
     def test_one(self):
-        for info in self.zf.infolist():
-            data = self.zf.read(info)
-            print(len(data), info)
+        rv = list(unpack(self.zf))
+        self.assertEqual(8, len(rv))
+        self.assertTrue(all(len(i) == 2 for i in rv))
