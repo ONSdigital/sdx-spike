@@ -1,3 +1,4 @@
+import glob
 import io
 import os.path
 import multiprocessing
@@ -61,8 +62,25 @@ class ServerTests(NeedsTemporaryDirectory, ZipInMemory, unittest.TestCase):
                 user="testuser", password="",
                 root="test"
             ):
-                print(item)
-        print(os.listdir(self.root))
+                print("transferred ", item)
+        self.assertEqual(
+            4,
+            len(glob.glob(os.path.join(
+                self.root, "data", "*", "sdx-spike", "*"
+            )))
+        )
+        self.assertEqual(
+            4,
+            len(glob.glob(os.path.join(
+                self.root, "data", "*", "sdx-spike", "sftpzip", "*"
+            )))
+        )
+        self.assertEqual(
+            2,
+            len(glob.glob(os.path.join(
+                self.root, "data", "*", "sdx-spike", "sftpzip", "test", "*"
+            )))
+        )
         server.terminate()
 
 class UnzipTests(ZipInMemory, unittest.TestCase):
