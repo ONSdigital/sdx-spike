@@ -3,15 +3,27 @@ import io
 import os.path
 import multiprocessing
 import shutil
+import sys
 import tempfile
 import time
 import unittest
 import zipfile
 
+# To run test in CF
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 import sftpzip.localserver
 
 from sftpzip.sftp import transfer
 from sftpzip.sftp import unpack
+
+"""
+To run this test in a Cloudfoundry environment:
+
+$ cf push sdx-spike
+$ cf run-task sdx-spike "sftpzip/test/test_sftpzip.py" --name unittest
+
+"""
 
 class ZipInMemory:
 
@@ -94,3 +106,6 @@ class UnzipTests(ZipInMemory, unittest.TestCase):
         rv = list(unpack(self.zf))
         self.assertEqual(8, len(rv))
         self.assertTrue(all(len(i) == 2 for i in rv))
+
+if __name__ == "__main__":
+    unittest.main()
