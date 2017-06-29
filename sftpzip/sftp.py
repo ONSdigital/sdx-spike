@@ -10,13 +10,14 @@ import zipfile
 
 import paramiko
 
+
 def unpack(zip_file):
     for info in zip_file.infolist():
         data = zip_file.read(info)
         yield info, data
 
+
 def makedirs(sftp, dirpath):
-    log = logging.getLogger("sftpclient.makedirs")
     paths = os.path.split(dirpath)
     index = 1
     while index <= len(paths):
@@ -28,6 +29,7 @@ def makedirs(sftp, dirpath):
             yield path
         finally:
             index += 1
+
 
 def transfer(zip_file, user, password, host, port, root, **kwargs):
     log = logging.getLogger("sftpclient.transfer")
@@ -56,6 +58,7 @@ def transfer(zip_file, user, password, host, port, root, **kwargs):
             for path in makedirs(sftp, info.filename):
                 log.info("created directory {0}".format(path))
     sftp.close()
+
 
 def main(args):
     log = logging.getLogger("sftpclient")
@@ -86,6 +89,7 @@ def main(args):
     with zipfile.ZipFile(sys.stdin.buffer) as payload:
         for item in transfer(payload, **kwargs):
             log.info(item)
+
 
 def parser(description="SFTP client for testing."):
     p = argparse.ArgumentParser(description)

@@ -27,6 +27,7 @@ $ cf logs sdx-spike --recent
 
 """
 
+
 class ZipInMemory:
 
     @staticmethod
@@ -38,7 +39,7 @@ class ZipInMemory:
                     dirnames.remove(node)
             for name in filenames:
                 if (not name.startswith(".")
-                    and os.path.splitext(name)[1] not in (".txt", ".yml", ".zip")):
+                   and os.path.splitext(name)[1] not in (".txt", ".yml", ".zip")):
                     yield os.path.join(dirpath, name)
 
     def setUp(self):
@@ -136,6 +137,7 @@ class ServerTests(NeedsTemporaryDirectory, ZipInMemory, unittest.TestCase):
             )))
         )
         server.terminate()
+
 
 class UnzipTests(ZipInMemory, unittest.TestCase):
 

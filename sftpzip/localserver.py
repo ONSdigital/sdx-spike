@@ -26,10 +26,11 @@ See
 
 To test from terminals 1 and 2::
 
-    1: ~/py3.5/bin/python -m sftpzip.localserver -v 
+    1: ~/py3.5/bin/python -m sftpzip.localserver -v
     2: sftp -P 22000 -o PreferredAuthentications=password -o StrictHostKeyChecking=no 127.0.0.1
 
 """
+
 
 class LocalServer(ServerInterface):
 
@@ -47,6 +48,7 @@ class LocalServer(ServerInterface):
         log.info(kind)
         return paramiko.OPEN_SUCCEEDED
 
+
 class LocalSFTPHandle(SFTPHandle):
 
     def stat(self):
@@ -56,13 +58,14 @@ class LocalSFTPHandle(SFTPHandle):
             return SFTPServer.convert_errno(e.errno)
 
     def chattr(self, attr):
-        # python doesn't have equivalents to fchown or fchmod, so we have to
+        # Python doesn't have equivalents to fchown or fchmod, so we have to
         # use the stored filename
         try:
             SFTPServer.set_file_attr(self.filename, attr)
             return paramiko.SFTP_OK
         except OSError as e:
             return SFTPServer.convert_errno(e.errno)
+
 
 class LocalSFTP(SFTPServerInterface):
 
@@ -162,6 +165,7 @@ class LocalSFTP(SFTPServerInterface):
         fobj.writefile = f
         return fobj
 
+
 def bind(host=None, port=22000):
     host = host or socket.gethostname()
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -169,13 +173,14 @@ def bind(host=None, port=22000):
     sock.bind(("", port))
     return sock
 
+
 def listen(sock, fails=12):
     sock.listen(fails)
     con, addr = sock.accept()
     return con
 
+
 def get_key(locn):
-    log = logging.getLogger("localsftp.keys")
     fp = os.path.join(locn, "id_rsa")
     try:
         key = RSAKey.from_private_key_file(fp)
@@ -183,6 +188,7 @@ def get_key(locn):
         key = RSAKey.generate(2048)
         key.write_private_key_file(fp)
     return key
+
 
 def serve(root, interval=12):
     log = logging.getLogger("localsftp.server")
@@ -220,6 +226,7 @@ def serve(root, interval=12):
         log.info("Stopped.")
         return rv
 
+
 def main(args):
     log = logging.getLogger("localsftp")
     log.setLevel(args.log_level)
@@ -245,6 +252,7 @@ def main(args):
 
     work_dir = args.work if args.work and os.path.isdir(args.work) else tempfile.mkdtemp()
     return serve(work_dir)
+
 
 def parser(description="SFTP server for testing."):
     p = argparse.ArgumentParser(description)
