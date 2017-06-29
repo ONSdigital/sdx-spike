@@ -24,6 +24,7 @@ To run this test in a Cloudfoundry environment:
 
 $ cf push sdx-spike
 $ cf run-task sdx-spike "sftpzip/test/test_sftpzip.py" --name unittest
+$ cf push sdx-spike -c "sftpzip/test/test_sftpzip.py"
 
 """
 
@@ -37,7 +38,8 @@ class ZipInMemory:
                 if node not in ["sdx-spike", "sftpzip", "test"]:
                     dirnames.remove(node)
             for name in filenames:
-                if not name.startswith(".") and not name.endswith(".zip"):
+                if (not name.startswith(".")
+                    and os.path.splitext(name)[1] not in (".txt", ".yml", ".zip")):
                     yield os.path.join(dirpath, name)
 
     def setUp(self):
@@ -78,7 +80,7 @@ class ServerTests(NeedsTemporaryDirectory, ZipInMemory, unittest.TestCase):
             ):
                 print("transferred ", item)
         self.assertEqual(
-            4,
+            3,
             len(glob.glob(os.path.join(
                 self.root, "data", "*", "sdx-spike", "*"
             )))
@@ -106,7 +108,7 @@ class UnzipTests(ZipInMemory, unittest.TestCase):
 
     def test_unpack(self):
         rv = list(unpack(self.zf))
-        self.assertEqual(8, len(rv))
+        self.assertEqual(7, len(rv))
         self.assertTrue(all(len(i) == 2 for i in rv))
 
 if __name__ == "__main__":

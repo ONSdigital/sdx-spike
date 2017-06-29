@@ -1,4 +1,7 @@
 ---
 applications:
-- name: sdx-collect
+- name: sdx-spike
   buildpack: python_buildpack
+  command: sftpzip/test/test_sftpzip.py
+  no-route: true
+  health-check-type: process
