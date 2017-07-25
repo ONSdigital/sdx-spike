@@ -7,7 +7,7 @@ channel = connection.channel()
 exchange = channel.exchange_declare(exchange='my_exchange', exchange_type='direct')
 
 channel.queue_declare(queue='tornado',
-                      durable=False,
+                      durable=True,
                       exclusive=False,
                       auto_delete=False)
 
