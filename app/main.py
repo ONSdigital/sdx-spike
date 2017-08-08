@@ -9,7 +9,25 @@ import os.path
 import signal
 import sys
 
+import tornado.ioloop
+import tornado.web
+
 __version__ = "0.1.0"
+
+class StatusService(tornado.web.RequestHandler):
+
+    def initialize(self, cfg):
+        self.cfg = cfg
+
+    def get(self):
+        self.write(dict(self.cfg))
+
+
+def create_app(cfg):
+    return tornado.web.Application([
+        ("/health", StatusService, {"cfg": cfg}),
+    ])
+
 
 def config(args):
     env = {k: v for k, v in ((i, os.getenv(i)) for i in (
@@ -22,6 +40,7 @@ def config(args):
     services = json.loads(os.getenv("VCAP_SERVICES", "{}"))
     return collections.ChainMap(env, application, services, vars(args))
 
+
 def main(cfg):
     name = "cf-spike"
     logging.basicConfig(
@@ -30,13 +49,21 @@ def main(cfg):
     )
     log = logging.getLogger(name)
     log.info(cfg)
+
+    app = create_app(cfg)
+    app.listen(cfg["port"])
+    loop = tornado.ioloop.IOLoop.current()
+    loop.start()
+
     return 0
+
 
 def parser(description="SDX service on CF."):
     p = argparse.ArgumentParser(description)
     p.add_argument(
-        "--home", dest="HOME", default=os.path.dirname(__file__),
-        help="Set a path to the keypair directory."
+        "--home", dest="HOME",
+        default=os.path.normpath(os.path.join(os.path.dirname(__file__), "..")),
+        help="Set a path to the home directory."
     )
     p.add_argument(
         "--port", dest="PORT", type=int, default=8080,
