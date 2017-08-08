@@ -14,6 +14,7 @@ import tornado.web
 
 __version__ = "0.1.0"
 
+
 class StatusService(tornado.web.RequestHandler):
 
     def initialize(self, cfg):
@@ -77,7 +78,9 @@ def parser(description="SDX service on CF."):
     p = argparse.ArgumentParser(description)
     p.add_argument(
         "--home", dest="HOME",
-        default=os.path.normpath(os.path.join(os.path.dirname(__file__), "..")),
+        default=os.path.normpath(os.path.join(
+            os.path.dirname(__file__), ".."
+        )),
         help="Set a path to the home directory."
     )
     p.add_argument(
@@ -88,11 +91,11 @@ def parser(description="SDX service on CF."):
         "-v", "--verbose", required=False,
         action="store_const", dest="LOG_LEVEL",
         const=logging.DEBUG, default=logging.INFO,
-        help="Increase the verbosity of output"
+        help="Increase the verbosity of output."
     )
     p.add_argument(
         "--version", action="store_true", default=False,
-        help="Print the current version number"
+        help="Print the current version number."
     )
     return p
 
