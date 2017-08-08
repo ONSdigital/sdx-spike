@@ -29,11 +29,15 @@ def create_app(cfg):
     ])
 
 
-def shutdown(name, log=None, loop=None):
+def shutdown(sig, frame, log=None, loop=None):
     loop = loop or tornado.ioloop.IOLoop.current()
     log = log or logging.getLogger("cf-spike")
-    log.info("Received shutdown signal.")
+    if sig:
+        log.info("Received shutdown signal.")
+    else:
+        log.info("Shutdown requested.")
     loop.stop()
+
 
 def config(args):
     env = {k: v for k, v in ((i, os.getenv(i)) for i in (
@@ -44,7 +48,7 @@ def config(args):
         "USER", "VCAP_APP_HOST", "VCAP_APP_PORT")) if v is not None}
     application = json.loads(os.getenv("VCAP_APPLICATION", "{}"))
     services = json.loads(os.getenv("VCAP_SERVICES", "{}"))
-    options = dict(vars(args), version=args.version)
+    options = dict(vars(args), version=__version__)
     return collections.ChainMap(env, application, services, options)
 
 
@@ -61,7 +65,10 @@ def main(cfg):
     app.listen(int(cfg["PORT"]))
     loop = tornado.ioloop.IOLoop.current()
     signal.signal(signal.SIGTERM, shutdown)
-    loop.start()
+    try:
+        loop.start()
+    except KeyboardInterrupt:
+        shutdown(None, None, log, loop)
 
     return 0
 
